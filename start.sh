@@ -99,6 +99,13 @@ if [ -f artisan ] && [ -f .env ] && ! grep -q '^APP_KEY=base64:' .env; then
   php artisan key:generate --force || true
 fi
 
+if [ "${RUN_MIGRATIONS:-0}" = "1" ] || [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+  if [ -f artisan ]; then
+    log_info "Running migrations..."
+    php artisan migrate --force || log_warning "migrate failed"
+  fi
+fi
+
 if [ "${RUN_OPTIMIZE_CLEAR:-1}" = "1" ] || [ "${RUN_OPTIMIZE_CLEAR:-true}" = "true" ]; then
   if [ -f artisan ]; then
     log_info "Running php artisan optimize:clear..."
