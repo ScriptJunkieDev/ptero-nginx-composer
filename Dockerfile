@@ -1,7 +1,7 @@
 ARG PHP_VERSION=8.2
 FROM php:${PHP_VERSION}-fpm-alpine
 
-RUN apk add --no-cache nginx git unzip zip ca-certificates
+RUN apk add --no-cache nginx git unzip zip ca-certificates openssh-client
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN addgroup -S container \
