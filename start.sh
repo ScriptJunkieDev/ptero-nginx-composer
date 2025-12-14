@@ -21,6 +21,57 @@ log_success "Temporary files removed successfully."
 # ----------------------------
 cd /home/container/webroot || { log_error "webroot not found"; exit 1; }
 
+# ----------------------------
+# Auto-update from Git on startup (optional)
+# ----------------------------
+if [ "${AUTO_UPDATE:-0}" = "1" ] || [ "${AUTO_UPDATE:-false}" = "true" ]; then
+  if [ -n "${GIT_ADDRESS}" ]; then
+    log_info "AUTO_UPDATE enabled. Syncing from git..."
+
+    # Normalize URL (optional)
+    case "${GIT_ADDRESS}" in
+      git@*) REPO_URL="${GIT_ADDRESS}" ;;                  # ssh form
+      http://*|https://*) REPO_URL="${GIT_ADDRESS}" ;;
+      *) REPO_URL="https://${GIT_ADDRESS}" ;;
+    esac
+
+    # Add .git if missing (optional)
+    [ "${REPO_URL##*.}" != "git" ] && REPO_URL="${REPO_URL}.git"
+
+    # If using https + token auth, inject creds
+    if [ -n "${USERNAME}" ] && [ -n "${ACCESS_TOKEN}" ]; then
+      REPO_URL="https://${USERNAME}:${ACCESS_TOKEN}@${REPO_URL#https://}"
+    fi
+
+    if [ -d .git ]; then
+      # Ensure origin matches and pull
+      git remote set-url origin "${REPO_URL}" 2>/dev/null || true
+      git fetch --all --prune || log_warning "git fetch failed"
+
+      if [ -n "${BRANCH}" ]; then
+        git checkout "${BRANCH}" 2>/dev/null || true
+        git pull --ff-only origin "${BRANCH}" || log_warning "git pull failed"
+      else
+        git pull --ff-only || log_warning "git pull failed"
+      fi
+    else
+      # If empty, clone; if not empty, don't stomp user files
+      if [ -z "$(ls -A . 2>/dev/null)" ]; then
+        log_info "webroot empty; cloning repo..."
+        if [ -n "${BRANCH}" ]; then
+          git clone --single-branch --branch "${BRANCH}" "${REPO_URL}" . || log_warning "git clone failed"
+        else
+          git clone "${REPO_URL}" . || log_warning "git clone failed"
+        fi
+      else
+        log_warning "AUTO_UPDATE is on but webroot is not a git repo; skipping pull."
+      fi
+    fi
+  else
+    log_warning "AUTO_UPDATE enabled but GIT_ADDRESS is empty; skipping."
+  fi
+fi
+
 if [ "${RUN_COMPOSER_INSTALL:-true}" = "true" ] || [ "${RUN_COMPOSER_INSTALL:-1}" = "1" ]; then
   if [ -f composer.json ]; then
     if [ ! -f vendor/autoload.php ]; then
