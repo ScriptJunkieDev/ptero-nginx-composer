@@ -26,6 +26,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Lowercase the image name for GHCR
+      - name: Set image name
+        id: img
+        run: |
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -33,5 +39,5 @@ jobs:
           build-args: |
             PHP_VERSION=${{ matrix.php }}
           tags: |
-            ghcr.io/${{ github.repository }}:${{ matrix.php }}
-            ghcr.io/${{ github.repository }}:${{ matrix.php }}-sha-${{ github.sha }}
+            ${{ steps.img.outputs.IMAGE }}:${{ matrix.php }}
+            ${{ steps.img.outputs.IMAGE }}:${{ matrix.php }}-sha-${{ github.sha }}
