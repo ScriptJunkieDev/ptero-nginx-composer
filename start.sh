@@ -38,12 +38,21 @@ else
   log_warning "RUN_COMPOSER_INSTALL disabled; skipping composer."
 fi
 
+# Ensure .env exists
+if [ ! -f .env ] && [ -f .env.example ]; then
+cp .env.example .env
+fi
+
+# Generate APP_KEY if missing
+if [ -f artisan ] && [ -f .env ] && ! grep -q '^APP_KEY=base64:' .env; then
+  php artisan key:generate --force || true
+fi
+
 log_info "Starting PHP-FPM..."
 php-fpm --fpm-config /home/container/php-fpm/php-fpm.conf --daemonize \
   || { log_error "Failed to start PHP-FPM."; exit 1; }
 log_success "PHP-FPM started successfully."
 
-# Start NGINX in foreground (so Pterodactyl can manage the process)
 log_info "Starting NGINX..."
-log_info "[SUCCESS] Web server is running. All services started successfully."
+echo "[SUCCESS] Web server is running. All services started successfully."
 exec /usr/sbin/nginx -c /home/container/nginx/nginx.conf -p /home/container/
