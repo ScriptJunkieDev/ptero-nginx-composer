@@ -4,7 +4,7 @@ FROM php:${PHP_VERSION}-fpm-alpine
 RUN apk add --no-cache nginx git unzip zip ca-certificates openssh-client
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN docker-php-ext-install pdo_mysql mysqli
+RUN docker-php-ext-install pdo_mysql mysqli bcmath zip
 
 RUN addgroup -S container \
  && adduser -S -G container -h /home/container container \
