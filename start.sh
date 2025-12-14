@@ -48,6 +48,13 @@ if [ -f artisan ] && [ -f .env ] && ! grep -q '^APP_KEY=base64:' .env; then
   php artisan key:generate --force || true
 fi
 
+if [ "${RUN_OPTIMIZE_CLEAR:-1}" = "1" ] || [ "${RUN_OPTIMIZE_CLEAR:-true}" = "true" ]; then
+  if [ -f artisan ]; then
+    log_info "Running php artisan optimize:clear..."
+    php artisan optimize:clear || true
+  fi
+fi
+
 log_info "Starting PHP-FPM..."
 php-fpm --fpm-config /home/container/php-fpm/php-fpm.conf --daemonize \
   || { log_error "Failed to start PHP-FPM."; exit 1; }
