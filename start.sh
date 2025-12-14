@@ -106,6 +106,18 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ] || [ "${RUN_MIGRATIONS:-false}" = "true" ]; 
   fi
 fi
 
+# ----------------------------
+# Custom command(s) on startup
+# ----------------------------
+if [ -n "${RUN_ON_START}" ]; then
+  log_warning "RUN_ON_START is enabled: ${RUN_ON_START}"
+  log_info "RUN_ON_START set; executing..."
+  cd /home/container/webroot || exit 1
+
+  # Run exactly what the user provided (can be multiple commands separated by ; or newlines)
+  sh -lc "${RUN_ON_START}" || log_warning "RUN_ON_START command failed"
+fi
+
 if [ "${RUN_OPTIMIZE_CLEAR:-1}" = "1" ] || [ "${RUN_OPTIMIZE_CLEAR:-true}" = "true" ]; then
   if [ -f artisan ]; then
     log_info "Running php artisan optimize:clear..."
