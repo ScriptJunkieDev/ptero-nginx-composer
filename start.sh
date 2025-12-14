@@ -45,6 +45,5 @@ log_success "PHP-FPM started successfully."
 
 # Start NGINX in foreground (so Pterodactyl can manage the process)
 log_info "Starting NGINX..."
-exec /usr/sbin/nginx -c /home/container/nginx/nginx.conf -p /home/container/
-
 log_info "[SUCCESS] Web server is running. All services started successfully."
+exec /usr/sbin/nginx -c /home/container/nginx/nginx.conf -p /home/container/
