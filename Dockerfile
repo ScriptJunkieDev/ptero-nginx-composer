@@ -17,8 +17,6 @@ RUN addgroup -S container \
  && chown -R container:container /home/container
 
 WORKDIR /home/container
-COPY ./start.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-USER container
-CMD ["/bin/sh", "/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
